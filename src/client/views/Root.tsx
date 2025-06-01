@@ -5,7 +5,7 @@ import {
   type House,
 } from "@/client/api";
 import { fetchPostDetails, type PostDetails } from "@/client/api/divar";
-import { HouseDetailModal } from "@/client/components/HouseDetailModal";
+import { HouseDetailPanel } from "@/client/components/HouseDetailPanel";
 import { useAsync } from "react-use";
 import { gradientStops, HousesMap } from "@/client/components/HousesMap";
 import { VscInfo, VscSettingsGear } from "react-icons/vsc";
@@ -29,11 +29,9 @@ export function Root() {
 
   const [selectedHouse, setSelectedHouse] = useState<House | null>(null);
   const [postDetails, setPostDetails] = useState<PostDetails | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
 
   const handleHouseClick = async (house: House) => {
     setSelectedHouse(house);
-    setIsDetailModalOpen(true);
     setPostDetails(null); // Clear previous details
     try {
       const details = await fetchPostDetails(house.token);
@@ -63,10 +61,21 @@ export function Root() {
   }, [filters, polygon]);
 
   return (
-    <div className="h-svh w-svw relative">
-      <div className="flex items-center justify-end backdrop-blur-sm backdrop-contrast-75 z-10 absolute bottom-2 left-1/2 -translate-x-1/2 w-xl mx-auto max-w-[calc(100svw-16px)] rounded-lg p-2 gap-2">
-        <button
-          onClick={() => {
+    <div className="flex h-svh w-svw">
+      <div className="flex-grow h-full relative"> {/* Map container */}
+        <HousesMap
+          houses={houses ?? []}
+          polygon={polygon}
+          locked={!!polygon}
+          onHighlightChange={setHighlightedPolygon}
+          onHouseClick={handleHouseClick}
+        />
+        {/* Controls that were previously absolutely positioned might need to be reviewed,
+            but the existing ones are bottom-center, so they might still work over the map.
+            Let's keep them as they are for now. */}
+        <div className="flex items-center justify-end backdrop-blur-sm backdrop-contrast-75 z-10 absolute bottom-2 left-1/2 -translate-x-1/2 w-xl mx-auto max-w-[calc(100svw-16px)] rounded-lg p-2 gap-2">
+          <button
+            onClick={() => {
             setPolygon(polygon ? undefined : highlightedPolygon);
           }}
           disabled={crawlHouses.loading}
@@ -94,14 +103,28 @@ export function Root() {
         >
           <VscSettingsGear className="size-5" />
         </button>
-        <button
-          onClick={()=>document.querySelector<HTMLDialogElement>('#about-dialog')!.showModal()}
-          className="shrink-0 btn btn-md btn-soft btn-square"
-        >
-          <VscInfo className="size-5" />
-        </button>
-      </div>
+          <button
+            onClick={()=>document.querySelector<HTMLDialogElement>('#about-dialog')!.showModal()}
+            className="shrink-0 btn btn-md btn-soft btn-square"
+          >
+            <VscInfo className="size-5" />
+          </button>
+        </div>
+      </div> {/* End Map container */}
 
+      {/* Render HouseDetailPanel conditionally */}
+      {selectedHouse && (
+        <HouseDetailPanel
+          house={selectedHouse}
+          details={postDetails}
+          onClose={() => {
+            setSelectedHouse(null);
+            setPostDetails(null);
+          }}
+        />
+      )}
+
+      {/* Dialogs remain outside the flex layout or at the top level of the map container if they need to overlay it */}
       <dialog id="filters-dialog" className="modal">
         <div className="modal-box">
           <h3 className="font-bold text-lg">Filters</h3>
@@ -150,16 +173,9 @@ export function Root() {
         onHighlightChange={setHighlightedPolygon}
         onHouseClick={handleHouseClick}
       />
-      <HouseDetailModal
-        house={selectedHouse}
-        details={postDetails}
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedHouse(null);
-          setPostDetails(null);
-        }}
-      />
-    </div>
+      {/* Dialogs are here, but they are modals, so their exact position in the DOM tree is less critical
+          as long as they are not within a parent that clips them or creates a new stacking context inappropriately.
+          Keeping them at this level, outside the main map+panel flex items, is fine. */}
+    </div> /* End flex container */
   );
 }
