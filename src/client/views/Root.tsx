@@ -166,16 +166,6 @@ export function Root() {
         </div>
       </dialog>
 
-      <HousesMap
-        houses={houses ?? []}
-        polygon={polygon}
-        locked={!!polygon}
-        onHighlightChange={setHighlightedPolygon}
-        onHouseClick={handleHouseClick}
-      />
-      {/* Dialogs are here, but they are modals, so their exact position in the DOM tree is less critical
-          as long as they are not within a parent that clips them or creates a new stacking context inappropriately.
-          Keeping them at this level, outside the main map+panel flex items, is fine. */}
     </div> /* End flex container */
   );
 }
