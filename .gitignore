@@ -23,3 +23,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Repomix output files
+repomix-output.txt
+repomix-output.md
+repomix-output.xml
+
+# Data files
+data/
+*.json.backup
+*.bak
