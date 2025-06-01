@@ -1,0 +1,10 @@
+name = "melk-map-backend"
+main = "src/server/index.ts"
+compatibility_date = "2024-01-01"
+
+[env.development]
+vars = { NODE_ENV = "development" }
+
+[[env.development.routes]]
+pattern = "localhost:8787/*"
+zone_name = "localhost" 
