@@ -261,8 +261,22 @@ export function HouseDetailPanel({ house, details, onClose }: HouseDetailPanelPr
               if (typeof chip === 'object' && chip.title) {
                 return <span key={index} className="badge badge-neutral text-xs">{chip.title}</span>;
               }
+              // If chip is object with icon URLs but no title (like parking/elevator icons)
+              if (typeof chip === 'object' && (chip.icon_url_light || chip.icon_url_dark)) {
+                return (
+                  <span key={index} className="badge badge-neutral text-xs">
+                    {chip.icon_url_light?.includes('parking') ? '🅿️ Parking' : 
+                     chip.icon_url_light?.includes('elevator') ? '🛗 Elevator' : 
+                     'Feature'}
+                  </span>
+                );
+              }
               // If chip is string
-              return <span key={index} className="badge badge-neutral text-xs">{chip}</span>;
+              if (typeof chip === 'string') {
+                return <span key={index} className="badge badge-neutral text-xs">{chip}</span>;
+              }
+              // Skip invalid chips
+              return null;
             })}
           </div>
         </div>
