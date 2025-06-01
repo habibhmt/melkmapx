@@ -4,6 +4,8 @@ import {
   type FetchHousesFilters,
   type House,
 } from "@/client/api";
+import { fetchPostDetails, type PostDetails } from "@/client/api/divar";
+import { HouseDetailModal } from "@/client/components/HouseDetailModal";
 import { useAsync } from "react-use";
 import { gradientStops, HousesMap } from "@/client/components/HousesMap";
 import { VscInfo, VscSettingsGear } from "react-icons/vsc";
@@ -24,6 +26,23 @@ export function Root() {
   const [progress, setProgress] = useState<number>(0);
   const [progressText, setProgressText] = useState('');
   const [houses, setHouses] = useState<House[]>([]);
+
+  const [selectedHouse, setSelectedHouse] = useState<House | null>(null);
+  const [postDetails, setPostDetails] = useState<PostDetails | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
+
+  const handleHouseClick = async (house: House) => {
+    setSelectedHouse(house);
+    setIsDetailModalOpen(true);
+    setPostDetails(null); // Clear previous details
+    try {
+      const details = await fetchPostDetails(house.token);
+      setPostDetails(details);
+    } catch (error) {
+      console.error("Failed to fetch post details:", error);
+      // Optionally, set an error state here to show in the modal
+    }
+  };
 
   const crawlHouses = useAsync(async () => {
     if (crawlHouses.loading) return [];
@@ -129,6 +148,17 @@ export function Root() {
         polygon={polygon}
         locked={!!polygon}
         onHighlightChange={setHighlightedPolygon}
+        onHouseClick={handleHouseClick}
+      />
+      <HouseDetailModal
+        house={selectedHouse}
+        details={postDetails}
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedHouse(null);
+          setPostDetails(null);
+        }}
       />
     </div>
   );
