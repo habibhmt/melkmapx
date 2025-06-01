@@ -136,3 +136,38 @@ export const fetchHouses = async (filters: FetchHousesFilters, progressFn?: Prog
 
   return returnValue;
 }
+
+export type PostDetails = {
+  sections?: Array<{
+    section_name?: string;
+    widgets?: Array<{
+      widget_type?: string;
+      data?: any; // Data can be diverse, specific parsing will be needed later
+    }>;
+  }>;
+};
+
+export const fetchPostDetails = async (token: string): Promise<PostDetails | null> => {
+  try {
+    // This assumes the existing proxy setup for '/divar' in vite.config.ts (dev)
+    // and wrangler.json (prod) can correctly forward a GET request
+    // from '/divar/v8/posts/${token}' to 'https://api.divar.ir/v8/posts/${token}'.
+    // This might require adjustments to the proxy configuration if it's not already set up
+    // to handle such paths or if it's specific to the POST requests of the main map API.
+    const response = await ofetch<PostDetails>(`/divar/v8/posts/${token}`, {
+      method: 'GET',
+      responseType: 'json',
+      // Some Divar APIs might require specific headers, e.g.,
+      // headers: {
+      //   'json-schema-version': 'v2.0.0'
+      // },
+      // For now, we'll try without specific headers first.
+    });
+    return response;
+  } catch (error) {
+    console.error(`Error fetching post details for token ${token}:`, error);
+    // Depending on how errors should be surfaced to the user,
+    // we might throw the error or return a specific error object.
+    return null;
+  }
+};

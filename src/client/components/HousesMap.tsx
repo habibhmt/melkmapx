@@ -29,12 +29,14 @@ export function HousesMap({
   polygon,
   onHighlightChange,
   locked = false,
+  onHouseClick,
 }: {
   houses: House[];
   children?: ReactNode;
   polygon?: FetchHousesFilters["polygon"];
   onHighlightChange?: (geometry: FetchHousesFilters["polygon"] | undefined) => void;
   locked?: boolean;
+  onHouseClick?: (house: House) => void;
 }) {
   const geoData = useAsync(() =>
     ofetch<GeoJSON.FeatureCollection>("/geoBoundaries-IRN-ADM4_simplified.geojson", {
@@ -119,11 +121,13 @@ export function HousesMap({
       return color;
     },
     onClick: ({ object }) => {
-      window.open(`https://divar.ir/v/${(object as House).token}`, "_blank");
+      if (onHouseClick && object) {
+        onHouseClick(object as House);
+      }
     },
-    opacity: 0.05,
+    opacity: 0.6,
     stroked: false,
-    pickable: false,
+    pickable: true,
   });
 
   const geoLayer = new GeoJsonLayer({
